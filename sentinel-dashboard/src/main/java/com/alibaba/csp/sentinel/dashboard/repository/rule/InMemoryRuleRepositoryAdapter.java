@@ -16,6 +16,7 @@
 package com.alibaba.csp.sentinel.dashboard.repository.rule;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,23 +58,52 @@ public abstract class InMemoryRuleRepositoryAdapter<T extends RuleEntity> implem
         return processedEntity;
     }
 
+//    @Override
+//    public List<T> saveAll(List<T> rules) {
+//        // TODO: check here.
+//        allRules.clear();
+//        machineRules.clear();
+//        appRules.clear();
+//
+//        if (rules == null) {
+//            return null;
+//        }
+//        List<T> savedRules = new ArrayList<>(rules.size());
+//        for (T rule : rules) {
+//            savedRules.add(save(rule));
+//        }
+//        return savedRules;
+//    }
+
     @Override
-    public List<T> saveAll(List<T> rules) {
+    public synchronized List<T> saveAll(List<T> rules) {
         // TODO: check here.
-        allRules.clear();
-        machineRules.clear();
-        appRules.clear();
+//        allRules.clear();
+//        machineRules.clear();
+//        appRules.clear();
 
         if (rules == null) {
-            return null;
+            return getAllRules();
         }
-        List<T> savedRules = new ArrayList<>(rules.size());
+
         for (T rule : rules) {
-            savedRules.add(save(rule));
+            save(rule);
         }
-        return savedRules;
+
+        return getAllRules();
     }
 
+    private List<T> getAllRules(){
+        if(allRules == null || allRules.size() == 0){
+            return new ArrayList<T>();
+        }
+        List<T> rules = new ArrayList();
+        Iterator<Map.Entry<Long, T>> iterator = allRules.entrySet().iterator();
+        while (iterator.hasNext()){
+            rules.add(iterator.next().getValue());
+        }
+        return rules;
+    }
     @Override
     public T delete(Long id) {
         T entity = allRules.remove(id);
